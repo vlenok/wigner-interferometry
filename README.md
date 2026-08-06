@@ -1,5 +1,5 @@
 # Wigner interferometry
-Official implementation of proof-of-principle simulations for "Wigner interferometry" paper.
+Proof-of-principle simulations for the "Wigner interferometry" paper.
 
 ![](figures/front-fig.svg)
 
@@ -20,11 +20,11 @@ Jupiter notebooks for numerical simulations and computing corresponding analytic
 - `compute-circ.ipynb` - for a circular source
 
 Plotting scripts:
-- `plot-paper.ipynb` - reproduces the figure from the paper
+- `plot-paper.ipynb` - reproduces the plot on Figure 3 from the paper
 - `plot-frontfig.ipynb` - reproduces the front image of this repository
 
 Service script:
-- `sigproc.py` - contains the service functions for filters and computations of the Wigner transform
+- `sigproc.py` - contains service functions for filters and computations of the Wigner transform
 
 ## Running sequence
 To reproduce results of the paper:
