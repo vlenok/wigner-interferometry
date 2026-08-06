@@ -15,7 +15,7 @@ ___
 ___
 
 ## Project Structure
-Jupiter notebooks performing numerical simulations and computing corresponding analytical Wigner correlation functions:
+Jupiter notebooks for numerical simulations and computing corresponding analytical Wigner correlation functions:
 - `compute-rect.ipynb` - for a rectangular source
 - `compute-circ.ipynb` - for a circular source
 
