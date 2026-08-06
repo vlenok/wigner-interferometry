@@ -27,9 +27,10 @@ Service script:
 - `sigproc.py` - contains the service functions for filters and computations of the Wigner transform
 
 ## Running sequence
-
-
-___
+To reproduce results of the paper:
+- run entire notebooks `compute-rect.ipynb` and `compute-circ.ipynb` to compute the Wigner correlations numerically and analytically (the results will be stored in a `./data` directory)
+- run `plot-paper.ipynb` to reproduce the main plot of the paper
+- run `plot-frontfig.ipynb` to reproduce the front image of this repository
 
 ## Citation
 For citations, please use the following.
