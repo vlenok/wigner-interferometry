@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools >= 75.1.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wigner-interferometry"
+version = "2026.0.0"
+dependencies = [
+  "numpy",
+  "scipy",
+  "matplotlib",
+]
+requires-python = ">= 3.10.15"
+authors = [
+  {name = "Vladimir Lenok", email = "vlenok@physik.uni-bielefeld.de"},
+]
+description = "Scripts reproducing results of the Wigner interferometry paper"
+readme = "README.md"
+license = "GPL-3.0-or-later"
+license-files = ["LICEN[CS]E*"]
