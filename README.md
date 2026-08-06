@@ -32,6 +32,13 @@ To reproduce results of the paper:
 - run `plot-paper.ipynb` to reproduce the main plot of the paper
 - run `plot-frontfig.ipynb` to reproduce the front image of this repository
 
+## Requirements
+- `python >= 3.10.15`
+- `numpy >= 1.26.4`
+- `scipy >= 1.15.3`
+- `matplotlib >= 3.10.0`
+- `jupyter`
+
 ## Citation
 For citations, please use the following.
 
