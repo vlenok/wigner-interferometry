@@ -32,8 +32,6 @@ To reproduce results of the paper:
 - run `plot-paper.ipynb` to reproduce the main plot of the paper
 - run `plot-frontfig.ipynb` to reproduce the front image of this repository
 
-___
-
 ## Citation
 For citations, please use the following.
 
