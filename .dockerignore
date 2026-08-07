@@ -1,0 +1,12 @@
+*
+!.python-version
+!LICENSE.txt
+!README.md
+!pyproject.toml
+!sigproc.py
+!uv.lock
+!autoresearch/
+!autoresearch/**
+autoresearch/__pycache__/
+autoresearch/results.jsonl
+autoresearch/scratchpad/

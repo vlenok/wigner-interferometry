@@ -105,6 +105,16 @@ jupyter lab
 
 This installs compatible dependency versions, but does not use the exact versions recorded in `uv.lock`.
 
+## Experimental autonomous algorithm research
+
+The [`autoresearch/`](autoresearch/README.md) directory contains an experimental,
+sandboxed environment in which a coding agent can propose and measure alternative
+implementations of the discrete Wigner transform. It has a narrow editable
+surface, a frozen correctness oracle, paired time/memory scoring, resource limits,
+and an auditable experiment protocol. This is research infrastructure rather than
+part of the paper's reproduction path; candidate results still require held-out
+validation and human review.
+
 ## Citation
 
 For citations, please use the following:

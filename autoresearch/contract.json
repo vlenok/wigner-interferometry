@@ -1,0 +1,37 @@
+{
+  "contract": "wigner-dwv-v1",
+  "editable_paths": [
+    "autoresearch/candidate.py"
+  ],
+  "frozen_paths": [
+    "sigproc.py",
+    "pyproject.toml",
+    "uv.lock",
+    "autoresearch/_reference.py",
+    "autoresearch/_protocol.py",
+    "autoresearch/_worker.py",
+    "autoresearch/evaluate.py"
+  ],
+  "correctness": {
+    "absolute_tolerance": 1e-10,
+    "relative_tolerance": 1e-10,
+    "public_cases": [
+      "real_self_8",
+      "real_cross_16",
+      "complex_cross_32",
+      "real_self_64",
+      "benchmark_real_self_<size>"
+    ]
+  },
+  "scoring": {
+    "direction": "higher_is_better",
+    "formula": "time_speedup^0.75 * memory_improvement^0.25",
+    "paired_reference": "autoresearch._reference.dwv",
+    "correctness_oracle": "sigproc.dwv"
+  },
+  "default_run": {
+    "size": 2048,
+    "repeats": 5,
+    "timeout_seconds": 120
+  }
+}
