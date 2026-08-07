@@ -41,7 +41,12 @@ Create `autoresearch/scratchpad/` and maintain:
 
    Do not include the warm-up result in the baseline distribution.
 
-5. Record the median score and the observed score spread in `scratchpad/THREAD.md`. Initial warm local measurements put the identical-code score near 0.98-1.01, so require at least a 5% confirmed improvement unless a new machine-specific noise study justifies another threshold.
+5. Record the median score and the observed score spread in `scratchpad/THREAD.md`.
+   When starting from the original wrapper, warm local measurements put the
+   identical-code score near 1.0. When starting from an optimized incumbent,
+   treat its repeated score distribution as the new baseline. Require at least a
+   5% confirmed improvement unless a machine-specific noise study justifies
+   another threshold.
 
 ## Bounded experiment loop
 

@@ -4,6 +4,7 @@ import sys
 import unittest
 
 from ._protocol import benchmark_case, expected_shape, make_signals
+from .evaluate import ABSOLUTE_TOLERANCE
 
 
 class ProtocolTests(unittest.TestCase):
@@ -15,7 +16,7 @@ class ProtocolTests(unittest.TestCase):
         self.assertTrue((first[1] == second[1]).all())
         self.assertEqual(expected_shape(32), (32, 62))
 
-    def test_baseline_candidate_passes_public_evaluator(self) -> None:
+    def test_candidate_passes_public_evaluator(self) -> None:
         completed = subprocess.run(
             [
                 sys.executable,
@@ -37,7 +38,7 @@ class ProtocolTests(unittest.TestCase):
         result = json.loads(completed.stdout)
         self.assertEqual(result["status"], "pass")
         self.assertGreater(result["score"], 0)
-        self.assertEqual(result["max_absolute_error"], 0)
+        self.assertLessEqual(result["max_absolute_error"], ABSOLUTE_TOLERANCE)
 
 
 if __name__ == "__main__":

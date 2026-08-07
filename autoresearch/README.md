@@ -16,6 +16,11 @@ The environment is intentionally narrower than an autonomous paper-writing syste
 - `Dockerfile` and `sandbox.sh`: no-network, read-only, CPU/memory/PID-limited execution of candidate code.
 - `results.jsonl` and `scratchpad/`: untracked measurements and durable research state.
 
+The branch currently contains a confirmed experimental candidate based on direct
+Wigner-plane construction and a real-input FFT specialization. See
+[`EXPERIMENT.md`](EXPERIMENT.md) for its measurements, validation scope, and
+limitations. It has not replaced `sigproc.dwv`.
+
 The score follows the paired-measurement idea used by MLXFast:
 
 ```text
