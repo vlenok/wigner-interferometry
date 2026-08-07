@@ -48,7 +48,7 @@ def dwv(signal1: np.ndarray, signal2: np.ndarray) -> np.ndarray:
             out=plane[row, :half_width],
         )
 
-    if np.iscomplexobj(plane):
+    if plane.dtype != np.dtype(np.float64):
         return np.fft.fft(plane, axis=1)
 
     spectrum = np.empty(
