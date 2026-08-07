@@ -48,4 +48,13 @@ def dwv(signal1: np.ndarray, signal2: np.ndarray) -> np.ndarray:
             out=plane[row, :half_width],
         )
 
-    return np.fft.fft(plane, axis=1)
+    if np.iscomplexobj(plane):
+        return np.fft.fft(plane, axis=1)
+
+    spectrum = np.empty(
+        (size, width),
+        dtype=np.result_type(plane.dtype, np.complex64),
+    )
+    np.fft.rfft(plane, axis=1, out=spectrum[:, :size])
+    np.conjugate(spectrum[:, size - 2 : 0 : -1], out=spectrum[:, size:])
+    return spectrum
