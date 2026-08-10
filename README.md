@@ -13,8 +13,11 @@ Proof-of-principle simulations for the "Wigner interferometry" paper.
 > <https://arxiv.org/abs/xxxx>
 >
 > **Abstract:**
+> 
 > *Aims.* This work aims to introduce a new method of interferometric measurements based on correlation of Wigner functions constructed for the fields from a distant source.
+> 
 > *Methods.* This work presents theoretical studies of correlation of the Wigner functions. Numerical simulations support the findings.
+> 
 > *Results.* It is shown that in comparison to the correlation of the fields, a correlation of their Wigner functions samples twice higher spatial frequencies of the source intensity distribution and has about twice smaller scale of the spatial pattern. This opens a fundamental possibility to improve the angular resolution of interferometric measurements by a factor of two.
 
 ---
