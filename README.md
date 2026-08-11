@@ -116,8 +116,13 @@ This installs compatible dependency versions, but does not use the exact version
 For citations, please use the following:
 
 ```bibtex
-@ARTICLE{xxx,
-    author = {Lenok, Vladimir},
-    title  = {Wigner interferometry},
+@misc{lenok2026wignerinterferometry,
+      title={Wigner interferometry}, 
+      author={Vladimir Lenok},
+      year={2026},
+      eprint={2608.09657},
+      archivePrefix={arXiv},
+      primaryClass={astro-ph.IM},
+      url={https://arxiv.org/abs/2608.09657}, 
 }
 ```
