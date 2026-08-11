@@ -10,7 +10,7 @@ Proof-of-principle simulations for the "Wigner interferometry" paper.
 >
 > Vladimir Lenok
 >
-> <[https://arxiv.org/abs/xxxx](http://arxiv.org/abs/2608.09657)>
+> <[https://arxiv.org/abs/2608.09657](https://arxiv.org/abs/2608.09657)>
 >
 > **Abstract:**
 > 
