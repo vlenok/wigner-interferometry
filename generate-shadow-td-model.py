@@ -51,7 +51,7 @@ DEFAULT_MODEL_PARAMETERS: dict[str, float | str] = {
     "optical_regime": "thin",
     "shadow_xmax": 17.0,
     "shadow_ymax": 17.0,
-    "position_angle_deg": 15.0,
+    "position_angle_deg": -15.0,
 }
 
 

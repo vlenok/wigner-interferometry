@@ -128,7 +128,8 @@ resolution.
 The source image is an optically thin
 [SHADOW-TD](https://github.com/ziliang-wang0/SHADOW-TD) model with
 `r_in = 6 M`, `psi_0 = 30 degrees`, `theta_0 = 55 degrees`, `kappa_ff = 0.35`,
-and `kappa_K = 0.35`. The image plane is rotated counterclockwise by 15 degrees.
+and `kappa_K = 0.35`. The image-plane position angle is -15 degrees
+(15 degrees clockwise).
 The broad feature is the lensing ring; the photon ring is its narrow inner
 boundary. SHADOW-TD models a Schwarzschild black hole with a parameterized
 thick disk, not a Kerr or GRMHD system

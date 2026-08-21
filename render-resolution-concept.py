@@ -36,6 +36,8 @@ MODEL_PATH = (
     / "figures"
     / "shadow-td-resolution-model.npz"
 )
+# Shared display offset; the source intensity and PSF convolution are unchanged.
+IMAGE_OFFSET = (0.08, -0.06)
 
 TEXT = {
     "x": "Interferometer baseline (m)",
@@ -257,7 +259,13 @@ def render(output_dir: Path) -> tuple[Path, Path]:
     curve_axis.tick_params(length=4, width=0.8)
 
     image_cmap = _image_colormap()
-    image_extent = (-1.3, 1.3, -1.3, 1.3)
+    offset_x, offset_y = IMAGE_OFFSET
+    image_extent = (
+        -1.3 + offset_x,
+        1.3 + offset_x,
+        -1.3 + offset_y,
+        1.3 + offset_y,
+    )
     for column, image, title, sigma, panel in (
         (2, current_display, "Classical (θ)", current_sigma, "B"),
         (
