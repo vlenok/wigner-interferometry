@@ -35,6 +35,7 @@ The notebooks reproduce the numerical simulations, analytical correlation functi
 ## Prerequisites
 
 - [`uv`](https://docs.astral.sh/uv/getting-started/installation/)
+- [Git LFS](https://git-lfs.com/)
 - A working LaTeX and `dvipng` toolchain containing `amsmath`, `amssymb`, and the Latin Modern fonts (required only by `plot-paper.ipynb`)
 
 The repository pins Python 3.10.15 in `.python-version`. If it is not already installed, `uv` downloads it automatically.
@@ -44,6 +45,7 @@ The repository pins Python 3.10.15 in `.python-version`. If it is not already in
 Clone the repository, enter its directory, and create the locked environment:
 
 ```bash
+git lfs install
 git clone https://github.com/vlenok/wigner-interferometry.git
 cd wigner-interferometry
 uv sync --locked
@@ -110,6 +112,48 @@ jupyter lab
 ```
 
 This installs compatible dependency versions, but does not use the exact versions recorded in `uv.lock`.
+
+## Resolution illustration
+
+Render the resolution figure:
+
+```bash
+uv run python render-resolution-concept.py
+```
+
+Outputs:
+
+- `figures/resolution-concept.png`
+- `figures/resolution-concept.svg`
+- `figures/black-hole-original.png`
+- `figures/black-hole-classical.png`
+- `figures/black-hole-wigner.png`
+
+Panels B and C convolve the same SHADOW-TD intensity map with Gaussian PSFs of
+widths `theta` and `theta/2`. The ratio represents the paper's predicted
+twofold resolution improvement; it does not specify an absolute angular
+resolution.
+
+The source image is an optically thin
+[SHADOW-TD](https://github.com/ziliang-wang0/SHADOW-TD) model with
+`r_in = 6 M`, `psi_0 = 30 degrees`, `theta_0 = 55 degrees`, `kappa_ff = 0.35`,
+and `kappa_K = 0.35`. The image-plane position angle is -15 degrees
+(15 degrees clockwise).
+The broad feature is the lensing ring; the photon ring is its narrow inner
+boundary. SHADOW-TD models a Schwarzschild black hole with a parameterized
+thick disk, not a Kerr or GRMHD system
+([Wang 2025](https://doi.org/10.1103/fhqj-wgcm)).
+
+Regenerate the intensity map:
+
+```bash
+uv run --script generate-shadow-td-model.py
+```
+
+Run the generator with `--help` to list its disk and viewing parameters.
+
+The generator uses SHADOW-TD revision
+`d77a2bd51514ec87d9cbbc295761c9d25cb36c82`.
 
 ## Citation
 
