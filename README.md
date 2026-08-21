@@ -136,9 +136,9 @@ This upstream calculation takes several minutes; the rendering command itself
 uses the compact committed archive. The model follows
 [Wang (2025)](https://doi.org/10.1103/fhqj-wgcm). SHADOW-TD uses a Schwarzschild
 black hole and a parameterized thick accretion disk; it is a physical
-ray-tracing model, but not a Kerr or GRMHD simulation. The Gaussian width ratio
-in the illustration comes from the half-maximum widths of the plotted
-correlation responses; it is not an absolute telescope forecast.
+ray-tracing model, but not a Kerr or GRMHD simulation. The illustration uses a
+conservative twofold Gaussian-width ratio for the theoretical resolution
+improvement; it is not an absolute telescope forecast.
 
 ## Citation
 

@@ -4,8 +4,8 @@ The correlation curves reproduce the circular-source theory used by
 ``plot-frontfig.ipynb``. The image panels use one SHADOW-TD ray-traced,
 optically thin thick-disk model containing direct emission, a lensing ring,
 and a narrow photon ring. They differ only by the width of a Gaussian
-point-spread function. The relative PSF width is derived from the half-maximum
-locations of the two plotted responses; it is not an absolute telescope
+point-spread function. The relative PSF width represents the conservative
+twofold theoretical resolution improvement; it is not an absolute telescope
 forecast.
 """
 
@@ -31,7 +31,6 @@ COLORS = {
     "background": "#ffffff",
     "ink": "#202124",
     "muted": "#6f7478",
-    "grid": "#d8d4cd",
     "classical": "#8faac7",
     "wigner": "#b22222",
     "wigner_fill": "#d98b83",
@@ -151,11 +150,6 @@ def correlation_curves() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     return baselines, classical, wigner
 
 
-def half_maximum_x(x: np.ndarray, y: np.ndarray) -> float:
-    index = int(np.flatnonzero(y <= 0.5)[0])
-    return float(np.interp(0.5, y[index - 1 : index + 1][::-1], x[index - 1 : index + 1][::-1]))
-
-
 def black_hole_model(model_path: Path = MODEL_PATH) -> tuple[np.ndarray, float]:
     """Load linear intensity from the committed SHADOW-TD source model."""
     with np.load(model_path, allow_pickle=False) as archive:
@@ -195,10 +189,8 @@ def _panel_label(axis: plt.Axes, label: str) -> None:
 def render(output_dir: Path) -> tuple[Path, Path]:
     labels = TEXT
     baselines, classical, wigner = correlation_curves()
-    wigner_half = half_maximum_x(baselines, wigner)
-    classical_half = half_maximum_x(baselines, classical)
-    factor = classical_half / wigner_half
-    display_factor = f"{factor:.1f}"
+    factor = 2.0
+    display_factor = f"{factor:g}"
 
     ideal, pixel_scale = black_hole_model()
     current_sigma = 0.19
@@ -239,7 +231,6 @@ def render(output_dir: Path) -> tuple[Path, Path]:
     _panel_label(curve_axis, "A")
     curve_axis.set_facecolor(COLORS["background"])
     curve_axis.axhline(0.0, color=COLORS["ink"], linewidth=0.75, alpha=0.55)
-    curve_axis.axhline(0.5, color=COLORS["grid"], linewidth=0.8, linestyle=(0, (3, 3)))
     curve_axis.plot(
         baselines,
         classical,
@@ -253,35 +244,6 @@ def render(output_dir: Path) -> tuple[Path, Path]:
         color=COLORS["wigner"],
         linewidth=3.0,
         label=labels["wigner"],
-    )
-    curve_axis.vlines(
-        [wigner_half, classical_half],
-        0.0,
-        0.5,
-        colors=[COLORS["wigner"], COLORS["classical"]],
-        linestyles=(0, (3, 3)),
-        linewidth=1.1,
-    )
-    curve_axis.annotate(
-        "",
-        xy=(classical_half, 0.57),
-        xytext=(wigner_half, 0.57),
-        arrowprops={
-            "arrowstyle": "<->",
-            "color": COLORS["ink"],
-            "linewidth": 1.1,
-            "shrinkA": 0,
-            "shrinkB": 0,
-        },
-    )
-    curve_axis.text(
-        (wigner_half + classical_half) / 2.0,
-        0.61,
-        f"{display_factor}×",
-        ha="center",
-        va="bottom",
-        fontsize=9,
-        color=COLORS["ink"],
     )
     curve_axis.set_xlim(0.0, 30.0)
     curve_axis.set_ylim(-0.2, 1.07)
@@ -303,11 +265,11 @@ def render(output_dir: Path) -> tuple[Path, Path]:
     image_cmap = _image_colormap()
     image_extent = (-1.3, 1.3, -1.3, 1.3)
     for column, image, title, sigma, panel in (
-        (2, current_display, "Classical  (θ)", current_sigma, "B"),
+        (2, current_display, "Classical (θ)", current_sigma, "B"),
         (
             3,
             expected_display,
-            f"Wigner  (θ/{display_factor})",
+            f"Wigner (θ/{display_factor})",
             expected_sigma,
             "C",
         ),
