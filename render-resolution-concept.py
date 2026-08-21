@@ -183,7 +183,51 @@ def _panel_label(axis: plt.Axes, label: str) -> None:
     )
 
 
-def render(output_dir: Path) -> tuple[Path, Path]:
+def _draw_black_hole_panel(
+    axis: plt.Axes,
+    image: np.ndarray,
+    *,
+    title: str,
+    sigma: float,
+    image_cmap: LinearSegmentedColormap,
+    image_extent: tuple[float, float, float, float],
+    common_max: float,
+    panel: str | None = None,
+) -> None:
+    if panel is not None:
+        _panel_label(axis, panel)
+    axis.set_facecolor("#020203")
+    axis.imshow(
+        image,
+        origin="lower",
+        extent=image_extent,
+        cmap=image_cmap,
+        vmin=0.0,
+        vmax=common_max,
+        interpolation="bicubic",
+    )
+    axis.set_title(title, fontsize=10, pad=7)
+    fwhm = 2.355 * sigma
+    axis.add_patch(
+        Circle(
+            (-0.91, -0.91),
+            radius=fwhm / 2.0,
+            facecolor="none",
+            edgecolor="white",
+            linewidth=1.2,
+            alpha=0.95,
+        )
+    )
+    axis.set_xlim(-1.3, 1.3)
+    axis.set_ylim(-1.3, 1.3)
+    axis.set_xticks(())
+    axis.set_yticks(())
+    for spine in axis.spines.values():
+        spine.set_color("#3a3b3d")
+        spine.set_linewidth(0.8)
+
+
+def render(output_dir: Path) -> tuple[Path, Path, Path]:
     labels = TEXT
     baselines, classical, wigner = correlation_curves()
     factor = 2.0
@@ -266,47 +310,25 @@ def render(output_dir: Path) -> tuple[Path, Path]:
         -1.3 + offset_y,
         1.3 + offset_y,
     )
-    for column, image, title, sigma, panel in (
-        (2, current_display, "Classical (θ)", current_sigma, "B"),
-        (
-            3,
-            expected_display,
-            f"Wigner (θ/{display_factor})",
-            expected_sigma,
-            "C",
-        ),
+    black_hole_panels = (
+        (current_display, "Classical (θ)", current_sigma, "B"),
+        (expected_display, f"Wigner (θ/{display_factor})", expected_sigma, "C"),
+    )
+    for column, (image, title, sigma, panel) in enumerate(
+        black_hole_panels,
+        start=2,
     ):
         image_axis = figure.add_subplot(grid[0, column])
-        _panel_label(image_axis, panel)
-        image_axis.set_facecolor("#020203")
-        image_axis.imshow(
+        _draw_black_hole_panel(
+            image_axis,
             image,
-            origin="lower",
-            extent=image_extent,
-            cmap=image_cmap,
-            vmin=0.0,
-            vmax=common_max,
-            interpolation="bicubic",
+            title=title,
+            sigma=sigma,
+            image_cmap=image_cmap,
+            image_extent=image_extent,
+            common_max=common_max,
+            panel=panel,
         )
-        image_axis.set_title(title, fontsize=10, pad=7)
-        fwhm = 2.355 * sigma
-        image_axis.add_patch(
-            Circle(
-                (-0.91, -0.91),
-                radius=fwhm / 2.0,
-                facecolor="none",
-                edgecolor="white",
-                linewidth=1.2,
-                alpha=0.95,
-            )
-        )
-        image_axis.set_xlim(-1.3, 1.3)
-        image_axis.set_ylim(-1.3, 1.3)
-        image_axis.set_xticks(())
-        image_axis.set_yticks(())
-        for spine in image_axis.spines.values():
-            spine.set_color("#3a3b3d")
-            spine.set_linewidth(0.8)
 
     output_dir.mkdir(parents=True, exist_ok=True)
     stem = output_dir / "resolution-concept"
@@ -326,16 +348,49 @@ def render(output_dir: Path) -> tuple[Path, Path]:
         "\n".join(line.rstrip() for line in svg_text.splitlines()) + "\n",
         encoding="utf-8",
     )
-    return png_path, svg_path
+
+    comparison_figure = plt.figure(
+        figsize=(6.2, 3.2),
+        facecolor=COLORS["background"],
+    )
+    comparison_grid = comparison_figure.add_gridspec(
+        1,
+        2,
+        left=0.02,
+        right=0.98,
+        top=0.88,
+        bottom=0.02,
+        wspace=0.08,
+    )
+    for column, (image, title, sigma, _) in enumerate(black_hole_panels):
+        image_axis = comparison_figure.add_subplot(comparison_grid[0, column])
+        _draw_black_hole_panel(
+            image_axis,
+            image,
+            title=title,
+            sigma=sigma,
+            image_cmap=image_cmap,
+            image_extent=image_extent,
+            common_max=common_max,
+        )
+    comparison_path = output_dir / "black-hole-resolution-comparison.png"
+    comparison_figure.savefig(
+        comparison_path,
+        dpi=300,
+        facecolor=comparison_figure.get_facecolor(),
+    )
+    plt.close(comparison_figure)
+    return png_path, svg_path, comparison_path
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, default=Path("figures"))
     args = parser.parse_args()
-    png_path, svg_path = render(args.output_dir)
+    png_path, svg_path, comparison_path = render(args.output_dir)
     print(png_path)
     print(svg_path)
+    print(comparison_path)
 
 
 if __name__ == "__main__":
