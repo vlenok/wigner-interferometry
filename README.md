@@ -119,20 +119,26 @@ This writes `figures/resolution-concept-en.png` and
 image and differ only in the width of the Gaussian point-spread function.
 
 The source image was ray-traced with
-[`KerrBAM`](https://github.com/danielpalumbo/BAM), using spin `a = 0.8`, an
-inclination of `54 degrees`, and an `80 microarcsecond` field of view. The
-archive preserves the direct `n = 0` accretion-flow image, the `n = 1` photon
-ring, and their sum as separate linear-intensity arrays. Regenerate it with the
-pinned upstream revision using:
+[`SHADOW-TD`](https://github.com/ziliang-wang0/SHADOW-TD) at a pinned upstream
+revision. It reproduces the optically thin model in Figure 11, row 2, column 3
+of Wang (2025): inner disk radius `r_in = 6 M`, disk half-opening angle
+`psi_0 = 30 degrees`, observer inclination `theta_0 = 50 degrees`,
+`kappa_ff = 0.5`, and `kappa_K = 0.1`. The broad bright structure is the
+lensing ring; the photon ring is its narrow inner boundary.
+
+Regenerate the committed linear-intensity archive with:
 
 ```bash
-uv run --script generate-kerrbam-model.py
+uv run --script generate-shadow-td-model.py
 ```
 
-The source-model choice follows the KerrBAM photon-ring study by
-[Farah et al. (2025)](https://doi.org/10.3847/1538-4357/adbbe3). The Gaussian
-width ratio in the illustration comes from the half-maximum widths of the
-plotted correlation responses; it is not an absolute telescope forecast.
+This upstream calculation takes several minutes; the rendering command itself
+uses the compact committed archive. The model follows
+[Wang (2025)](https://doi.org/10.1103/fhqj-wgcm). SHADOW-TD uses a Schwarzschild
+black hole and a parameterized thick accretion disk; it is a physical
+ray-tracing model, but not a Kerr or GRMHD simulation. The Gaussian width ratio
+in the illustration comes from the half-maximum widths of the plotted
+correlation responses; it is not an absolute telescope forecast.
 
 ## Citation
 

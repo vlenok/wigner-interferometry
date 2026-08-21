@@ -1,11 +1,12 @@
 """Render the resolution concept figure for the grant application.
 
 The correlation curves reproduce the circular-source theory used by
-``plot-frontfig.ipynb``. The image panels use one KerrBAM ray-traced source
-model containing the direct (n=0) accretion-flow image and the n=1 photon
-ring. They differ only by the width of a Gaussian point-spread function. The
-relative PSF width is derived from the half-maximum locations of the two
-plotted responses; it is not an absolute telescope forecast.
+``plot-frontfig.ipynb``. The image panels use one SHADOW-TD ray-traced,
+optically thin thick-disk model containing direct emission, a lensing ring,
+and a narrow photon ring. They differ only by the width of a Gaussian
+point-spread function. The relative PSF width is derived from the half-maximum
+locations of the two plotted responses; it is not an absolute telescope
+forecast.
 """
 
 from __future__ import annotations
@@ -39,7 +40,7 @@ COLORS = {
 MODEL_PATH = (
     Path(__file__).resolve().parent
     / "figures"
-    / "kerrbam-a-plus0.8-inc54.npz"
+    / "shadow-td-fig11-r2c3.npz"
 )
 
 TEXT = {
@@ -156,14 +157,14 @@ def half_maximum_x(x: np.ndarray, y: np.ndarray) -> float:
 
 
 def black_hole_model(model_path: Path = MODEL_PATH) -> tuple[np.ndarray, float]:
-    """Load linear intensity from the committed KerrBAM source model."""
+    """Load linear intensity from the committed SHADOW-TD source model."""
     with np.load(model_path, allow_pickle=False) as archive:
-        image = np.asarray(archive["total"], dtype=np.float64)
+        image = np.asarray(archive["intensity"], dtype=np.float64)
 
     if image.ndim != 2 or image.shape[0] != image.shape[1]:
         raise ValueError(f"expected a square 2D model image, got {image.shape}")
     if not np.isfinite(image).all() or float(image.max()) <= 0.0:
-        raise ValueError("KerrBAM model contains invalid or empty intensity")
+        raise ValueError("SHADOW-TD model contains invalid or empty intensity")
 
     image /= image.max()
     pixel_scale = 2.6 / image.shape[0]
@@ -204,11 +205,10 @@ def render(output_dir: Path) -> tuple[Path, Path]:
     expected_sigma = current_sigma / factor
     current = ndimage.gaussian_filter(ideal, current_sigma / pixel_scale, mode="constant")
     expected = ndimage.gaussian_filter(ideal, expected_sigma / pixel_scale, mode="constant")
-    # Apply the PSF to linear intensity. The shared asinh display transform is
-    # deliberately applied afterward so it cannot alter the convolution.
-    display_scale = 0.01
-    current_display = np.arcsinh(current / display_scale)
-    expected_display = np.arcsinh(expected / display_scale)
+    # Apply the PSF to linear intensity. Both panels then use the same linear
+    # display mapping so faint outer-disk emission cannot mask the rings.
+    current_display = current
+    expected_display = expected
     common_max = max(float(current_display.max()), float(expected_display.max()))
 
     plt.rcParams.update(
