@@ -1,4 +1,4 @@
-"""Render the resolution concept figure for the grant application.
+"""Render the resolution concept figure for the paper.
 
 The correlation curves reproduce the circular-source theory used by
 ``plot-frontfig.ipynb``. The image panels use one SHADOW-TD ray-traced,
@@ -307,7 +307,7 @@ def render(output_dir: Path) -> tuple[Path, Path]:
             spine.set_linewidth(0.8)
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    stem = output_dir / "resolution-concept-en"
+    stem = output_dir / "resolution-concept"
     png_path = stem.with_suffix(".png")
     svg_path = stem.with_suffix(".svg")
     figure.savefig(png_path, dpi=300, facecolor=figure.get_facecolor())

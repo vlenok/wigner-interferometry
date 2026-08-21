@@ -109,15 +109,15 @@ This installs compatible dependency versions, but does not use the exact version
 
 ## Resolution concept illustration
 
-Render the English grant illustration from the committed linear-intensity
-source model:
+Render the paper's resolution concept illustration from the committed
+linear-intensity source model:
 
 ```bash
 uv run python render-resolution-concept.py
 ```
 
-This writes `figures/resolution-concept-en.png` and
-`figures/resolution-concept-en.svg`. Panels B and C use exactly the same source
+This writes `figures/resolution-concept.png` and
+`figures/resolution-concept.svg`. Panels B and C use exactly the same source
 image and differ only in the width of the Gaussian point-spread function.
 
 The source image was ray-traced with
