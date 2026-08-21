@@ -183,6 +183,19 @@ def _panel_label(axis: plt.Axes, label: str) -> None:
     )
 
 
+def _add_psf_circle(axis: plt.Axes, sigma: float) -> None:
+    axis.add_patch(
+        Circle(
+            (-0.91, -0.91),
+            radius=2.355 * sigma / 2.0,
+            facecolor="none",
+            edgecolor="white",
+            linewidth=1.2,
+            alpha=0.95,
+        )
+    )
+
+
 def _draw_black_hole_panel(
     axis: plt.Axes,
     image: np.ndarray,
@@ -207,17 +220,7 @@ def _draw_black_hole_panel(
         interpolation="bicubic",
     )
     axis.set_title(title, fontsize=10, pad=7)
-    fwhm = 2.355 * sigma
-    axis.add_patch(
-        Circle(
-            (-0.91, -0.91),
-            radius=fwhm / 2.0,
-            facecolor="none",
-            edgecolor="white",
-            linewidth=1.2,
-            alpha=0.95,
-        )
-    )
+    _add_psf_circle(axis, sigma)
     axis.set_xlim(-1.3, 1.3)
     axis.set_ylim(-1.3, 1.3)
     axis.set_xticks(())
@@ -350,7 +353,7 @@ def render(output_dir: Path) -> tuple[Path, Path, Path, Path]:
     )
 
     standalone_paths = []
-    for filename, (image, _, _, _) in zip(
+    for filename, (image, _, sigma, _) in zip(
         ("black-hole-classical.png", "black-hole-wigner.png"),
         black_hole_panels,
         strict=True,
@@ -369,6 +372,7 @@ def render(output_dir: Path) -> tuple[Path, Path, Path, Path]:
             vmax=common_max,
             interpolation="bicubic",
         )
+        _add_psf_circle(image_axis, sigma)
         image_axis.set_xlim(-1.3, 1.3)
         image_axis.set_ylim(-1.3, 1.3)
         image_axis.set_axis_off()
