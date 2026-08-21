@@ -31,6 +31,8 @@ COLORS = {
     "wigner": "#b22222",
 }
 
+DISPLAY_HALF_WIDTH = 1.3
+DISPLAY_CROP_M = 17.0
 MODEL_PATH = (
     Path(__file__).resolve().parent
     / "figures"
@@ -147,19 +149,25 @@ def correlation_curves() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     return baselines, classical, wigner
 
 
-def black_hole_model(model_path: Path = MODEL_PATH) -> tuple[np.ndarray, float]:
+def black_hole_model(
+    model_path: Path = MODEL_PATH,
+) -> tuple[np.ndarray, float, float]:
     """Load and normalize the SHADOW-TD intensity map."""
     with np.load(model_path, allow_pickle=False) as archive:
         image = np.asarray(archive["intensity"], dtype=np.float64)
+        extent_m = float(archive["extent_m"])
 
     if image.ndim != 2 or image.shape[0] != image.shape[1]:
         raise ValueError(f"expected a square 2D model image, got {image.shape}")
     if not np.isfinite(image).all() or float(image.max()) <= 0.0:
         raise ValueError("SHADOW-TD model contains invalid or empty intensity")
+    if not np.isfinite(extent_m) or extent_m <= 0.0:
+        raise ValueError("SHADOW-TD model has an invalid extent")
 
     image /= image.max()
-    pixel_scale = 2.6 / image.shape[0]
-    return image, pixel_scale
+    display_half_extent = DISPLAY_HALF_WIDTH * extent_m / DISPLAY_CROP_M
+    pixel_scale = 2.0 * display_half_extent / image.shape[0]
+    return image, pixel_scale, display_half_extent
 
 
 def _image_colormap() -> LinearSegmentedColormap:
@@ -221,8 +229,8 @@ def _draw_black_hole_panel(
     )
     axis.set_title(title, fontsize=10, pad=7)
     _add_psf_circle(axis, sigma)
-    axis.set_xlim(-1.3, 1.3)
-    axis.set_ylim(-1.3, 1.3)
+    axis.set_xlim(-DISPLAY_HALF_WIDTH, DISPLAY_HALF_WIDTH)
+    axis.set_ylim(-DISPLAY_HALF_WIDTH, DISPLAY_HALF_WIDTH)
     axis.set_xticks(())
     axis.set_yticks(())
     for spine in axis.spines.values():
@@ -230,13 +238,13 @@ def _draw_black_hole_panel(
         spine.set_linewidth(0.8)
 
 
-def render(output_dir: Path) -> tuple[Path, Path, Path, Path]:
+def render(output_dir: Path) -> tuple[Path, Path, Path, Path, Path]:
     labels = TEXT
     baselines, classical, wigner = correlation_curves()
     factor = 2.0
     display_factor = f"{factor:g}"
 
-    ideal, pixel_scale = black_hole_model()
+    ideal, pixel_scale, display_half_extent = black_hole_model()
     current_sigma = 0.19
     expected_sigma = current_sigma / factor
     current = ndimage.gaussian_filter(ideal, current_sigma / pixel_scale, mode="constant")
@@ -308,10 +316,10 @@ def render(output_dir: Path) -> tuple[Path, Path, Path, Path]:
     image_cmap = _image_colormap()
     offset_x, offset_y = IMAGE_OFFSET
     image_extent = (
-        -1.3 + offset_x,
-        1.3 + offset_x,
-        -1.3 + offset_y,
-        1.3 + offset_y,
+        -display_half_extent + offset_x,
+        display_half_extent + offset_x,
+        -display_half_extent + offset_y,
+        display_half_extent + offset_y,
     )
     black_hole_panels = (
         (current_display, "Classical (θ)", current_sigma, "B"),
@@ -353,11 +361,12 @@ def render(output_dir: Path) -> tuple[Path, Path, Path, Path]:
     )
 
     standalone_paths = []
-    for filename, (image, _, sigma, _) in zip(
-        ("black-hole-classical.png", "black-hole-wigner.png"),
-        black_hole_panels,
-        strict=True,
-    ):
+    standalone_panels = (
+        ("black-hole-original.png", ideal, float(ideal.max()), None),
+        ("black-hole-classical.png", current_display, common_max, current_sigma),
+        ("black-hole-wigner.png", expected_display, common_max, expected_sigma),
+    )
+    for filename, image, display_max, sigma in standalone_panels:
         standalone_figure = plt.figure(
             figsize=(3.2, 3.2),
             facecolor="#020203",
@@ -369,12 +378,13 @@ def render(output_dir: Path) -> tuple[Path, Path, Path, Path]:
             extent=image_extent,
             cmap=image_cmap,
             vmin=0.0,
-            vmax=common_max,
+            vmax=display_max,
             interpolation="bicubic",
         )
-        _add_psf_circle(image_axis, sigma)
-        image_axis.set_xlim(-1.3, 1.3)
-        image_axis.set_ylim(-1.3, 1.3)
+        if sigma is not None:
+            _add_psf_circle(image_axis, sigma)
+        image_axis.set_xlim(-DISPLAY_HALF_WIDTH, DISPLAY_HALF_WIDTH)
+        image_axis.set_ylim(-DISPLAY_HALF_WIDTH, DISPLAY_HALF_WIDTH)
         image_axis.set_axis_off()
         standalone_path = output_dir / filename
         standalone_figure.savefig(
@@ -386,18 +396,21 @@ def render(output_dir: Path) -> tuple[Path, Path, Path, Path]:
         )
         plt.close(standalone_figure)
         standalone_paths.append(standalone_path)
-    return png_path, svg_path, standalone_paths[0], standalone_paths[1]
+    return (
+        png_path,
+        svg_path,
+        standalone_paths[0],
+        standalone_paths[1],
+        standalone_paths[2],
+    )
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, default=Path("figures"))
     args = parser.parse_args()
-    png_path, svg_path, classical_path, wigner_path = render(args.output_dir)
-    print(png_path)
-    print(svg_path)
-    print(classical_path)
-    print(wigner_path)
+    for output_path in render(args.output_dir):
+        print(output_path)
 
 
 if __name__ == "__main__":

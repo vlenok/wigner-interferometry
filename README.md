@@ -119,6 +119,7 @@ Outputs:
 
 - `figures/resolution-concept.png`
 - `figures/resolution-concept.svg`
+- `figures/black-hole-original.png`
 - `figures/black-hole-classical.png`
 - `figures/black-hole-wigner.png`
 

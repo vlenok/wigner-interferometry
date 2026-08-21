@@ -49,8 +49,8 @@ DEFAULT_MODEL_PARAMETERS: dict[str, float | str] = {
     "theta0_deg": 55.0,
     "dalpha": 0.005,
     "optical_regime": "thin",
-    "shadow_xmax": 17.0,
-    "shadow_ymax": 17.0,
+    "shadow_xmax": 18.5,
+    "shadow_ymax": 18.5,
     "position_angle_deg": -15.0,
 }
 
@@ -275,7 +275,7 @@ def main() -> None:
         help="Rasterize an existing SHADOW-TD flux archive instead of rerunning it",
     )
     parser.add_argument("--grid-size", type=int, default=1024)
-    parser.add_argument("--extent-m", type=float, default=17.0)
+    parser.add_argument("--extent-m", type=float, default=18.5)
     parser.add_argument("--max-distance-m", type=float, default=0.05)
     parser.add_argument(
         "--kappa-ff",
