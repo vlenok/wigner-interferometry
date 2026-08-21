@@ -1,10 +1,11 @@
-"""Render an annotated resolution concept figure for the grant application.
+"""Render the resolution concept figure for the grant application.
 
 The correlation curves reproduce the circular-source theory used by
-``plot-frontfig.ipynb``. The image panels deliberately use one synthetic
-black-hole model and differ only by the width of a Gaussian point-spread
-function. Their relative PSF width is derived from the half-maximum locations
-of the two plotted responses; it is not an absolute telescope forecast.
+``plot-frontfig.ipynb``. The image panels use one KerrBAM ray-traced source
+model containing the direct (n=0) accretion-flow image and the n=1 photon
+ring. They differ only by the width of a Gaussian point-spread function. The
+relative PSF width is derived from the half-maximum locations of the two
+plotted responses; it is not an absolute telescope forecast.
 """
 
 from __future__ import annotations
@@ -13,12 +14,11 @@ import argparse
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.patches import Circle
-import numpy as np
 from scipy import ndimage
 from scipy.special import jv, struve
-
 
 SPEED_OF_LIGHT = 3.0e8
 SOURCE_RADIUS = np.radians(0.25)
@@ -35,6 +35,12 @@ COLORS = {
     "wigner": "#b22222",
     "wigner_fill": "#d98b83",
 }
+
+MODEL_PATH = (
+    Path(__file__).resolve().parent
+    / "figures"
+    / "kerrbam-a-plus0.8-inc54.npz"
+)
 
 TEXT = {
     "x": "Interferometer baseline (m)",
@@ -149,27 +155,19 @@ def half_maximum_x(x: np.ndarray, y: np.ndarray) -> float:
     return float(np.interp(0.5, y[index - 1 : index + 1][::-1], x[index - 1 : index + 1][::-1]))
 
 
-def black_hole_model(size: int = 720) -> tuple[np.ndarray, float]:
-    axis = np.linspace(-1.3, 1.3, size)
-    x, y = np.meshgrid(axis, axis)
+def black_hole_model(model_path: Path = MODEL_PATH) -> tuple[np.ndarray, float]:
+    """Load linear intensity from the committed KerrBAM source model."""
+    with np.load(model_path, allow_pickle=False) as archive:
+        image = np.asarray(archive["total"], dtype=np.float64)
 
-    angle = np.radians(-16.0)
-    rotated_x = np.cos(angle) * x - np.sin(angle) * y
-    rotated_y = np.sin(angle) * x + np.cos(angle) * y
-    elliptical_radius = np.sqrt(rotated_x**2 + (rotated_y / 0.78) ** 2)
-    azimuth = np.arctan2(rotated_y / 0.78, rotated_x)
+    if image.ndim != 2 or image.shape[0] != image.shape[1]:
+        raise ValueError(f"expected a square 2D model image, got {image.shape}")
+    if not np.isfinite(image).all() or float(image.max()) <= 0.0:
+        raise ValueError("KerrBAM model contains invalid or empty intensity")
 
-    ring = np.exp(-0.5 * ((elliptical_radius - 0.64) / 0.075) ** 2)
-    doppler = 0.18 + 0.82 * (0.5 + 0.5 * np.cos(azimuth + 0.8)) ** 1.7
-    outer_glow = 0.14 * np.exp(-0.5 * ((elliptical_radius - 0.70) / 0.22) ** 2)
-    photon_arc = 0.35 * np.exp(-0.5 * ((elliptical_radius - 0.51) / 0.035) ** 2)
-    photon_arc *= np.exp(-0.5 * ((azimuth + 0.65) / 1.0) ** 2)
-    image = (ring * doppler + outer_glow * doppler + photon_arc) ** 0.72
-
-    shadow = 1.0 - np.exp(-((elliptical_radius / 0.34) ** 8))
-    image *= shadow
     image /= image.max()
-    return image, float(axis[1] - axis[0])
+    pixel_scale = 2.6 / image.shape[0]
+    return image, pixel_scale
 
 
 def _image_colormap() -> LinearSegmentedColormap:
@@ -206,7 +204,12 @@ def render(output_dir: Path) -> tuple[Path, Path]:
     expected_sigma = current_sigma / factor
     current = ndimage.gaussian_filter(ideal, current_sigma / pixel_scale, mode="constant")
     expected = ndimage.gaussian_filter(ideal, expected_sigma / pixel_scale, mode="constant")
-    common_max = max(float(current.max()), float(expected.max()))
+    # Apply the PSF to linear intensity. The shared asinh display transform is
+    # deliberately applied afterward so it cannot alter the convolution.
+    display_scale = 0.01
+    current_display = np.arcsinh(current / display_scale)
+    expected_display = np.arcsinh(expected / display_scale)
+    common_max = max(float(current_display.max()), float(expected_display.max()))
 
     plt.rcParams.update(
         {
@@ -217,6 +220,7 @@ def render(output_dir: Path) -> tuple[Path, Path]:
             "xtick.color": COLORS["muted"],
             "ytick.color": COLORS["muted"],
             "svg.fonttype": "none",
+            "svg.hashsalt": "wigner-interferometry",
         }
     )
     figure = plt.figure(figsize=(13.5, 4.8), facecolor=COLORS["background"])
@@ -299,8 +303,14 @@ def render(output_dir: Path) -> tuple[Path, Path]:
     image_cmap = _image_colormap()
     image_extent = (-1.3, 1.3, -1.3, 1.3)
     for column, image, title, sigma, panel in (
-        (2, current, "Classical  (θ)", current_sigma, "B"),
-        (3, expected, f"Wigner  (θ/{display_factor})", expected_sigma, "C"),
+        (2, current_display, "Classical  (θ)", current_sigma, "B"),
+        (
+            3,
+            expected_display,
+            f"Wigner  (θ/{display_factor})",
+            expected_sigma,
+            "C",
+        ),
     ):
         image_axis = figure.add_subplot(grid[0, column])
         _panel_label(image_axis, panel)
@@ -339,7 +349,11 @@ def render(output_dir: Path) -> tuple[Path, Path]:
     png_path = stem.with_suffix(".png")
     svg_path = stem.with_suffix(".svg")
     figure.savefig(png_path, dpi=300, facecolor=figure.get_facecolor())
-    figure.savefig(svg_path, facecolor=figure.get_facecolor())
+    figure.savefig(
+        svg_path,
+        facecolor=figure.get_facecolor(),
+        metadata={"Date": None},
+    )
     plt.close(figure)
     # Matplotlib writes spaces before newlines inside SVG path data. Normalize
     # the generated text so repository whitespace checks stay useful.

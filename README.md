@@ -105,6 +105,35 @@ jupyter lab
 
 This installs compatible dependency versions, but does not use the exact versions recorded in `uv.lock`.
 
+## Resolution concept illustration
+
+Render the English grant illustration from the committed linear-intensity
+source model:
+
+```bash
+uv run python render-resolution-concept.py
+```
+
+This writes `figures/resolution-concept-en.png` and
+`figures/resolution-concept-en.svg`. Panels B and C use exactly the same source
+image and differ only in the width of the Gaussian point-spread function.
+
+The source image was ray-traced with
+[`KerrBAM`](https://github.com/danielpalumbo/BAM), using spin `a = 0.8`, an
+inclination of `54 degrees`, and an `80 microarcsecond` field of view. The
+archive preserves the direct `n = 0` accretion-flow image, the `n = 1` photon
+ring, and their sum as separate linear-intensity arrays. Regenerate it with the
+pinned upstream revision using:
+
+```bash
+uv run --script generate-kerrbam-model.py
+```
+
+The source-model choice follows the KerrBAM photon-ring study by
+[Farah et al. (2025)](https://doi.org/10.3847/1538-4357/adbbe3). The Gaussian
+width ratio in the illustration comes from the half-maximum widths of the
+plotted correlation responses; it is not an absolute telescope forecast.
+
 ## Citation
 
 For citations, please use the following:
