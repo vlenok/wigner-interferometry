@@ -227,7 +227,7 @@ def _draw_black_hole_panel(
         spine.set_linewidth(0.8)
 
 
-def render(output_dir: Path) -> tuple[Path, Path, Path]:
+def render(output_dir: Path) -> tuple[Path, Path, Path, Path]:
     labels = TEXT
     baselines, classical, wigner = correlation_curves()
     factor = 2.0
@@ -349,21 +349,17 @@ def render(output_dir: Path) -> tuple[Path, Path, Path]:
         encoding="utf-8",
     )
 
-    comparison_figure = plt.figure(
-        figsize=(6.2, 3.2),
-        facecolor=COLORS["background"],
-    )
-    comparison_grid = comparison_figure.add_gridspec(
-        1,
-        2,
-        left=0.02,
-        right=0.98,
-        top=0.88,
-        bottom=0.02,
-        wspace=0.08,
-    )
-    for column, (image, title, sigma, _) in enumerate(black_hole_panels):
-        image_axis = comparison_figure.add_subplot(comparison_grid[0, column])
+    standalone_paths = []
+    for filename, (image, title, sigma, _) in zip(
+        ("black-hole-classical.png", "black-hole-wigner.png"),
+        black_hole_panels,
+        strict=True,
+    ):
+        standalone_figure = plt.figure(
+            figsize=(3.2, 3.2),
+            facecolor=COLORS["background"],
+        )
+        image_axis = standalone_figure.add_axes((0.04, 0.02, 0.92, 0.86))
         _draw_black_hole_panel(
             image_axis,
             image,
@@ -373,24 +369,26 @@ def render(output_dir: Path) -> tuple[Path, Path, Path]:
             image_extent=image_extent,
             common_max=common_max,
         )
-    comparison_path = output_dir / "black-hole-resolution-comparison.png"
-    comparison_figure.savefig(
-        comparison_path,
-        dpi=300,
-        facecolor=comparison_figure.get_facecolor(),
-    )
-    plt.close(comparison_figure)
-    return png_path, svg_path, comparison_path
+        standalone_path = output_dir / filename
+        standalone_figure.savefig(
+            standalone_path,
+            dpi=300,
+            facecolor=standalone_figure.get_facecolor(),
+        )
+        plt.close(standalone_figure)
+        standalone_paths.append(standalone_path)
+    return png_path, svg_path, standalone_paths[0], standalone_paths[1]
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, default=Path("figures"))
     args = parser.parse_args()
-    png_path, svg_path, comparison_path = render(args.output_dir)
+    png_path, svg_path, classical_path, wigner_path = render(args.output_dir)
     print(png_path)
     print(svg_path)
-    print(comparison_path)
+    print(classical_path)
+    print(wigner_path)
 
 
 if __name__ == "__main__":

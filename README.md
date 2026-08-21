@@ -119,7 +119,8 @@ Outputs:
 
 - `figures/resolution-concept.png`
 - `figures/resolution-concept.svg`
-- `figures/black-hole-resolution-comparison.png`
+- `figures/black-hole-classical.png`
+- `figures/black-hole-wigner.png`
 
 Panels B and C convolve the same SHADOW-TD intensity map with Gaussian PSFs of
 widths `theta` and `theta/2`. The ratio represents the paper's predicted
