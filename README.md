@@ -29,7 +29,7 @@ The notebooks reproduce the numerical simulations, analytical correlation functi
 ## Prerequisites
 
 - [`uv`](https://docs.astral.sh/uv/getting-started/installation/)
-- [Git LFS](https://git-lfs.com/) for the committed source model and PNG render
+- [Git LFS](https://git-lfs.com/)
 - A working LaTeX and `dvipng` toolchain containing `amsmath`, `amssymb`, and the Latin Modern fonts (required only by `plot-paper.ipynb`)
 
 The repository pins Python 3.10.15 in `.python-version`. If it is not already installed, `uv` downloads it automatically.
@@ -107,40 +107,40 @@ jupyter lab
 
 This installs compatible dependency versions, but does not use the exact versions recorded in `uv.lock`.
 
-## Resolution concept illustration
+## Resolution illustration
 
-Render the paper's resolution concept illustration from the committed
-linear-intensity source model:
+Render the resolution figure:
 
 ```bash
 uv run python render-resolution-concept.py
 ```
 
-This writes `figures/resolution-concept.png` and
-`figures/resolution-concept.svg`. Panels B and C use exactly the same source
-image and differ only in the width of the Gaussian point-spread function.
+Outputs:
 
-The source image was ray-traced with
-[`SHADOW-TD`](https://github.com/ziliang-wang0/SHADOW-TD) at a pinned upstream
-revision. It reproduces the optically thin model in Figure 11, row 2, column 3
-of Wang (2025): inner disk radius `r_in = 6 M`, disk half-opening angle
-`psi_0 = 30 degrees`, observer inclination `theta_0 = 50 degrees`,
-`kappa_ff = 0.5`, and `kappa_K = 0.1`. The broad bright structure is the
-lensing ring; the photon ring is its narrow inner boundary.
+- `figures/resolution-concept.png`
+- `figures/resolution-concept.svg`
 
-Regenerate the committed linear-intensity archive with:
+Panels B and C convolve the same SHADOW-TD intensity map with Gaussian PSFs of
+widths `theta` and `theta/2`. The ratio represents the paper's predicted
+twofold resolution improvement; it does not specify an absolute angular
+resolution.
+
+The source reproduces the optically thin model in Figure 11, row 2, column 3
+of [Wang (2025)](https://doi.org/10.1103/fhqj-wgcm): `r_in = 6 M`,
+`psi_0 = 30 degrees`, `theta_0 = 50 degrees`, `kappa_ff = 0.5`, and
+`kappa_K = 0.1`. The broad feature is the lensing ring; the photon ring is its
+narrow inner boundary. [`SHADOW-TD`](https://github.com/ziliang-wang0/SHADOW-TD)
+models a Schwarzschild black hole with a parameterized thick disk, not a Kerr
+or GRMHD system.
+
+Regenerate the intensity map:
 
 ```bash
 uv run --script generate-shadow-td-model.py
 ```
 
-This upstream calculation takes several minutes; the rendering command itself
-uses the compact committed archive. The model follows
-[Wang (2025)](https://doi.org/10.1103/fhqj-wgcm). SHADOW-TD uses a Schwarzschild
-black hole and a parameterized thick accretion disk; it is a physical
-ray-tracing model, but not a Kerr or GRMHD simulation. The illustration uses a
-conservative twofold Gaussian-width ratio for the theoretical resolution
-improvement; it is not an absolute telescope forecast.
+The generator uses SHADOW-TD revision
+`d77a2bd51514ec87d9cbbc295761c9d25cb36c82`.
 
 ## Citation
 

@@ -1,12 +1,8 @@
-"""Render the resolution concept figure for the paper.
+"""Render the resolution figure.
 
-The correlation curves reproduce the circular-source theory used by
-``plot-frontfig.ipynb``. The image panels use one SHADOW-TD ray-traced,
-optically thin thick-disk model containing direct emission, a lensing ring,
-and a narrow photon ring. They differ only by the width of a Gaussian
-point-spread function. The relative PSF width represents the conservative
-twofold theoretical resolution improvement; it is not an absolute telescope
-forecast.
+Panel A reproduces the circular-source responses from ``plot-frontfig.ipynb``.
+Panels B and C convolve the same SHADOW-TD intensity map with Gaussian PSFs of
+widths theta and theta/2.
 """
 
 from __future__ import annotations
@@ -33,7 +29,6 @@ COLORS = {
     "muted": "#6f7478",
     "classical": "#8faac7",
     "wigner": "#b22222",
-    "wigner_fill": "#d98b83",
 }
 
 MODEL_PATH = (
@@ -151,7 +146,7 @@ def correlation_curves() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
 
 
 def black_hole_model(model_path: Path = MODEL_PATH) -> tuple[np.ndarray, float]:
-    """Load linear intensity from the committed SHADOW-TD source model."""
+    """Load and normalize the SHADOW-TD intensity map."""
     with np.load(model_path, allow_pickle=False) as archive:
         image = np.asarray(archive["intensity"], dtype=np.float64)
 
@@ -197,8 +192,7 @@ def render(output_dir: Path) -> tuple[Path, Path]:
     expected_sigma = current_sigma / factor
     current = ndimage.gaussian_filter(ideal, current_sigma / pixel_scale, mode="constant")
     expected = ndimage.gaussian_filter(ideal, expected_sigma / pixel_scale, mode="constant")
-    # Apply the PSF to linear intensity. Both panels then use the same linear
-    # display mapping so faint outer-disk emission cannot mask the rings.
+    # Convolve linear intensity and use one display scale for both panels.
     current_display = current
     expected_display = expected
     common_max = max(float(current_display.max()), float(expected_display.max()))

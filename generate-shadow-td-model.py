@@ -9,16 +9,13 @@
 #   "tqdm>=4.67,<5",
 # ]
 # ///
-"""Generate the ray-traced source model used by the resolution illustration.
+"""Generate the SHADOW-TD intensity map used by the resolution figure.
 
-By default this downloads a pinned SHADOW-TD revision, runs its geodesic and
-flux calculations with the parameters of Figure 11, row 2, column 3 in Wang
-(2025), and rasterizes the resulting linear intensity:
+Run the geodesic and flux calculations:
 
     uv run --script generate-shadow-td-model.py
 
-The upstream calculation takes several minutes and creates a large temporary
-working directory. To rasterize an already-computed upstream flux archive:
+Rasterize an existing flux archive:
 
     uv run --script generate-shadow-td-model.py --flux-npz path/to/flux.npz
 """
@@ -180,7 +177,7 @@ def generate(
     extent_m: float,
     max_distance_m: float,
 ) -> None:
-    """Generate the compact, deterministic source archive."""
+    """Generate the source archive."""
     if flux_npz is None:
         with tempfile.TemporaryDirectory(prefix="shadow-td-") as temporary:
             source = _download_source(Path(temporary))
