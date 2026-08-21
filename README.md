@@ -125,19 +125,22 @@ widths `theta` and `theta/2`. The ratio represents the paper's predicted
 twofold resolution improvement; it does not specify an absolute angular
 resolution.
 
-The source reproduces the optically thin model in Figure 11, row 2, column 3
-of [Wang (2025)](https://doi.org/10.1103/fhqj-wgcm): `r_in = 6 M`,
-`psi_0 = 30 degrees`, `theta_0 = 50 degrees`, `kappa_ff = 0.5`, and
-`kappa_K = 0.1`. The broad feature is the lensing ring; the photon ring is its
-narrow inner boundary. [`SHADOW-TD`](https://github.com/ziliang-wang0/SHADOW-TD)
-models a Schwarzschild black hole with a parameterized thick disk, not a Kerr
-or GRMHD system.
+The source image is an optically thin
+[SHADOW-TD](https://github.com/ziliang-wang0/SHADOW-TD) model with
+`r_in = 6 M`, `psi_0 = 30 degrees`, `theta_0 = 55 degrees`, `kappa_ff = 0.35`,
+and `kappa_K = 0.35`. The image plane is rotated counterclockwise by 15 degrees.
+The broad feature is the lensing ring; the photon ring is its narrow inner
+boundary. SHADOW-TD models a Schwarzschild black hole with a parameterized
+thick disk, not a Kerr or GRMHD system
+([Wang 2025](https://doi.org/10.1103/fhqj-wgcm)).
 
 Regenerate the intensity map:
 
 ```bash
 uv run --script generate-shadow-td-model.py
 ```
+
+Run the generator with `--help` to list its disk and viewing parameters.
 
 The generator uses SHADOW-TD revision
 `d77a2bd51514ec87d9cbbc295761c9d25cb36c82`.

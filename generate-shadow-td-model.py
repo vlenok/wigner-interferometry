@@ -41,15 +41,17 @@ SHADOW_TD_ARCHIVE = (
     f"{SHADOW_TD_COMMIT}.zip"
 )
 
-FIGURE_PARAMETERS: dict[str, float | str] = {
-    "kappa_ff": 0.5,
-    "kappa_K": 0.1,
+DEFAULT_MODEL_PARAMETERS: dict[str, float | str] = {
+    "kappa_ff": 0.35,
+    "kappa_K": 0.35,
     "r_in": 6.0,
     "psi0_deg": 30.0,
-    "theta0_deg": 50.0,
+    "theta0_deg": 55.0,
+    "dalpha": 0.005,
     "optical_regime": "thin",
     "shadow_xmax": 17.0,
     "shadow_ymax": 17.0,
+    "position_angle_deg": 15.0,
 }
 
 
@@ -89,16 +91,38 @@ def _safe_extract(archive: zipfile.ZipFile, destination: Path) -> Path:
 
 def _download_source(destination: Path) -> Path:
     archive_path = destination / "shadow-td.zip"
-    print(f"Downloading SHADOW-TD revision {SHADOW_TD_COMMIT}...")
+    print(f"Downloading SHADOW-TD revision {SHADOW_TD_COMMIT}...", flush=True)
     urllib.request.urlretrieve(SHADOW_TD_ARCHIVE, archive_path)
     with zipfile.ZipFile(archive_path) as archive:
         return _safe_extract(archive, destination / "source")
 
 
-def _run_shadow_td(source: Path) -> Path:
+def _flux_filename(parameters: dict[str, float | str]) -> str:
+    optical_regime = str(parameters["optical_regime"])
+    return (
+        "flux_rmax=50.0_"
+        f"optical_{optical_regime}_"
+        f"psi0={float(parameters['psi0_deg']):.1f}_"
+        f"rin={float(parameters['r_in']):.1f}_"
+        f"theta0={float(parameters['theta0_deg']):.1f}_"
+        f"kappaff={float(parameters['kappa_ff']):.3f}_"
+        f"kappaK={float(parameters['kappa_K']):.3f}.npz"
+    )
+
+
+def _run_shadow_td(
+    source: Path,
+    parameters: dict[str, float | str],
+) -> Path:
     config_path = source / "config" / "config.json"
     config = json.loads(config_path.read_text(encoding="utf-8"))
-    config.update(FIGURE_PARAMETERS)
+    config.update(
+        {
+            name: value
+            for name, value in parameters.items()
+            if name != "position_angle_deg"
+        }
+    )
     config_path.write_text(json.dumps(config, indent=4) + "\n", encoding="utf-8")
 
     for script in (
@@ -107,10 +131,7 @@ def _run_shadow_td(source: Path) -> Path:
     ):
         subprocess.run([sys.executable, str(script)], cwd=source, check=True)
 
-    output = source / "output" / (
-        "flux_rmax=50.0_optical_thin_psi0=30.0_rin=6.0_"
-        "theta0=50.0_kappaff=0.500_kappaK=0.100.npz"
-    )
+    output = source / "output" / _flux_filename(parameters)
     if not output.is_file():
         raise RuntimeError(f"SHADOW-TD did not create the expected output: {output}")
     return output
@@ -122,6 +143,7 @@ def rasterize_flux(
     grid_size: int,
     extent_m: float,
     max_distance_m: float,
+    position_angle_deg: float,
 ) -> np.ndarray:
     """Map the upstream polar samples to a regular Cartesian intensity grid."""
     if grid_size < 2:
@@ -136,6 +158,13 @@ def rasterize_flux(
 
     x = b * np.cos(alpha)
     y = b * np.sin(alpha)
+    position_angle = np.radians(position_angle_deg)
+    cos_angle = np.cos(position_angle)
+    sin_angle = np.sin(position_angle)
+    x, y = (
+        cos_angle * x - sin_angle * y,
+        sin_angle * x + cos_angle * y,
+    )
     valid = (
         np.isfinite(x)
         & np.isfinite(y)
@@ -176,17 +205,19 @@ def generate(
     grid_size: int,
     extent_m: float,
     max_distance_m: float,
+    parameters: dict[str, float | str],
 ) -> None:
     """Generate the source archive."""
     if flux_npz is None:
         with tempfile.TemporaryDirectory(prefix="shadow-td-") as temporary:
             source = _download_source(Path(temporary))
-            flux_path = _run_shadow_td(source)
+            flux_path = _run_shadow_td(source, parameters)
             image = rasterize_flux(
                 flux_path,
                 grid_size=grid_size,
                 extent_m=extent_m,
                 max_distance_m=max_distance_m,
+                position_angle_deg=float(parameters["position_angle_deg"]),
             )
     else:
         image = rasterize_flux(
@@ -194,6 +225,7 @@ def generate(
             grid_size=grid_size,
             extent_m=extent_m,
             max_distance_m=max_distance_m,
+            position_angle_deg=float(parameters["position_angle_deg"]),
         )
 
     save_npz_deterministic(
@@ -201,24 +233,29 @@ def generate(
         {
             "intensity": image,
             "extent_m": np.array(extent_m, dtype=np.float64),
-            "r_in_m": np.array(FIGURE_PARAMETERS["r_in"], dtype=np.float64),
+            "r_in_m": np.array(parameters["r_in"], dtype=np.float64),
             "psi0_deg": np.array(
-                FIGURE_PARAMETERS["psi0_deg"],
+                parameters["psi0_deg"],
                 dtype=np.float64,
             ),
             "theta0_deg": np.array(
-                FIGURE_PARAMETERS["theta0_deg"],
+                parameters["theta0_deg"],
                 dtype=np.float64,
             ),
             "kappa_ff": np.array(
-                FIGURE_PARAMETERS["kappa_ff"],
+                parameters["kappa_ff"],
                 dtype=np.float64,
             ),
             "kappa_K": np.array(
-                FIGURE_PARAMETERS["kappa_K"],
+                parameters["kappa_K"],
                 dtype=np.float64,
             ),
-            "optical_regime": np.array(FIGURE_PARAMETERS["optical_regime"]),
+            "dalpha_rad": np.array(parameters["dalpha"], dtype=np.float64),
+            "position_angle_deg": np.array(
+                parameters["position_angle_deg"],
+                dtype=np.float64,
+            ),
+            "optical_regime": np.array(parameters["optical_regime"]),
             "shadow_td_commit": np.array(SHADOW_TD_COMMIT),
         },
     )
@@ -230,7 +267,7 @@ def main() -> None:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("figures/shadow-td-fig11-r2c3.npz"),
+        default=Path("figures/shadow-td-resolution-model.npz"),
     )
     parser.add_argument(
         "--flux-npz",
@@ -240,13 +277,71 @@ def main() -> None:
     parser.add_argument("--grid-size", type=int, default=1024)
     parser.add_argument("--extent-m", type=float, default=17.0)
     parser.add_argument("--max-distance-m", type=float, default=0.05)
+    parser.add_argument(
+        "--kappa-ff",
+        type=float,
+        default=DEFAULT_MODEL_PARAMETERS["kappa_ff"],
+        help="radial free-fall coefficient",
+    )
+    parser.add_argument(
+        "--kappa-k",
+        type=float,
+        default=DEFAULT_MODEL_PARAMETERS["kappa_K"],
+        help="azimuthal Keplerian rotation coefficient",
+    )
+    parser.add_argument(
+        "--r-in-m",
+        type=float,
+        default=DEFAULT_MODEL_PARAMETERS["r_in"],
+        help="inner disk radius in units of M",
+    )
+    parser.add_argument(
+        "--psi0-deg",
+        type=float,
+        default=DEFAULT_MODEL_PARAMETERS["psi0_deg"],
+        help="disk half-opening angle in degrees",
+    )
+    parser.add_argument(
+        "--theta0-deg",
+        type=float,
+        default=DEFAULT_MODEL_PARAMETERS["theta0_deg"],
+        help="observer inclination in degrees",
+    )
+    parser.add_argument(
+        "--position-angle-deg",
+        type=float,
+        default=DEFAULT_MODEL_PARAMETERS["position_angle_deg"],
+        help="counterclockwise image-plane rotation in degrees",
+    )
     args = parser.parse_args()
+    if not 0.0 <= args.kappa_ff <= 1.0:
+        parser.error("--kappa-ff must be between 0 and 1")
+    if not 0.0 <= args.kappa_k < 1.0:
+        parser.error("--kappa-k must be between 0 and 1")
+    if args.r_in_m <= 2.0:
+        parser.error("--r-in-m must be greater than 2")
+    if not 0.0 < args.psi0_deg < 90.0:
+        parser.error("--psi0-deg must be between 0 and 90")
+    if not 0.0 <= args.theta0_deg <= 90.0:
+        parser.error("--theta0-deg must be between 0 and 90")
+    if not np.isfinite(args.position_angle_deg):
+        parser.error("--position-angle-deg must be finite")
+    parameters = {
+        **DEFAULT_MODEL_PARAMETERS,
+        "kappa_ff": args.kappa_ff,
+        "kappa_K": args.kappa_k,
+        "r_in": args.r_in_m,
+        "psi0_deg": args.psi0_deg,
+        "theta0_deg": args.theta0_deg,
+        "position_angle_deg": args.position_angle_deg,
+    }
     generate(
         args.output,
         flux_npz=args.flux_npz,
         grid_size=args.grid_size,
         extent_m=args.extent_m,
         max_distance_m=args.max_distance_m,
+        parameters=parameters,
     )
 
 

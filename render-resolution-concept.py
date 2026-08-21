@@ -34,7 +34,7 @@ COLORS = {
 MODEL_PATH = (
     Path(__file__).resolve().parent
     / "figures"
-    / "shadow-td-fig11-r2c3.npz"
+    / "shadow-td-resolution-model.npz"
 )
 
 TEXT = {
