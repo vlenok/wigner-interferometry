@@ -29,6 +29,7 @@ The notebooks reproduce the numerical simulations, analytical correlation functi
 ## Prerequisites
 
 - [`uv`](https://docs.astral.sh/uv/getting-started/installation/)
+- [Git LFS](https://git-lfs.com/) for the committed source model and PNG render
 - A working LaTeX and `dvipng` toolchain containing `amsmath`, `amssymb`, and the Latin Modern fonts (required only by `plot-paper.ipynb`)
 
 The repository pins Python 3.10.15 in `.python-version`. If it is not already installed, `uv` downloads it automatically.
@@ -38,6 +39,7 @@ The repository pins Python 3.10.15 in `.python-version`. If it is not already in
 Clone the repository, enter its directory, and create the locked environment:
 
 ```bash
+git lfs install
 git clone https://github.com/vlenok/wigner-interferometry.git
 cd wigner-interferometry
 uv sync --locked
