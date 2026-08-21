@@ -454,6 +454,13 @@ def render(language: str, output_dir: Path) -> tuple[Path, Path]:
     figure.savefig(png_path, dpi=300, facecolor=figure.get_facecolor())
     figure.savefig(svg_path, facecolor=figure.get_facecolor())
     plt.close(figure)
+    # Matplotlib writes spaces before newlines inside SVG path data. Normalize
+    # the generated text so repository whitespace checks stay useful.
+    svg_text = svg_path.read_text(encoding="utf-8")
+    svg_path.write_text(
+        "\n".join(line.rstrip() for line in svg_text.splitlines()) + "\n",
+        encoding="utf-8",
+    )
     return png_path, svg_path
 
 
