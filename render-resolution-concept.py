@@ -350,30 +350,35 @@ def render(output_dir: Path) -> tuple[Path, Path, Path, Path]:
     )
 
     standalone_paths = []
-    for filename, (image, title, sigma, _) in zip(
+    for filename, (image, _, _, _) in zip(
         ("black-hole-classical.png", "black-hole-wigner.png"),
         black_hole_panels,
         strict=True,
     ):
         standalone_figure = plt.figure(
             figsize=(3.2, 3.2),
-            facecolor=COLORS["background"],
+            facecolor="#020203",
         )
-        image_axis = standalone_figure.add_axes((0.04, 0.02, 0.92, 0.86))
-        _draw_black_hole_panel(
-            image_axis,
+        image_axis = standalone_figure.add_axes((0.0, 0.0, 1.0, 1.0))
+        image_axis.imshow(
             image,
-            title=title,
-            sigma=sigma,
-            image_cmap=image_cmap,
-            image_extent=image_extent,
-            common_max=common_max,
+            origin="lower",
+            extent=image_extent,
+            cmap=image_cmap,
+            vmin=0.0,
+            vmax=common_max,
+            interpolation="bicubic",
         )
+        image_axis.set_xlim(-1.3, 1.3)
+        image_axis.set_ylim(-1.3, 1.3)
+        image_axis.set_axis_off()
         standalone_path = output_dir / filename
         standalone_figure.savefig(
             standalone_path,
             dpi=300,
             facecolor=standalone_figure.get_facecolor(),
+            edgecolor="none",
+            pad_inches=0,
         )
         plt.close(standalone_figure)
         standalone_paths.append(standalone_path)
